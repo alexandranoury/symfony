@@ -3,9 +3,16 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\AlimentRepository")
+ * @Vich\Uploadable
  */
 class Aliment
 {
@@ -18,11 +25,13 @@ class Aliment
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Length(min=3,max=15,minMessage="le nom doit faire 3 caractères minimum", maxMessage="Le nom doit faire moins de 15 caractères"),
      */
     private $nom;
 
     /**
      * @ORM\Column(type="float")
+     * @Assert\Range(min=0.1,max=100, minMessage ="Le prix doit être supérieur à 0.1 ", maxMessage ="Le prix doit être inférieur à 100")
      */
     private $prix;
 
@@ -30,6 +39,26 @@ class Aliment
      * @ORM\Column(type="string", length=255)
      */
     private $image;
+    
+    /**
+    * @Vich\UploadableField(mapping="aliment_image", fileNameProperty="image") 
+     */
+    private $imageFile;
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageFile(?File $imageFile = null): self
+    {
+        $this->imageFile = $imageFile;
+        if($this->imageFile instanceof UploadedFile){
+            $this->updated_at = new \DateTime('now'); /* DATE ET HEURE DU MOMENT OU ON A CLIQUER SUR LE BOUTON*/
+        }
+        return $this;
+        
+ }
 
     /**
      * @ORM\Column(type="integer")
@@ -50,6 +79,16 @@ class Aliment
      * @ORM\Column(type="float")
      */
     private $lipide;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $updated_at;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="aliments")
+     */
+    private $type;
 
     public function getId(): ?int
     {
@@ -85,7 +124,7 @@ class Aliment
         return $this->image;
     }
 
-    public function setImage(string $image): self
+    public function setImage(?string $image): self
     {
         $this->image = $image;
 
@@ -136,6 +175,30 @@ class Aliment
     public function setLipide(float $lipide): self
     {
         $this->lipide = $lipide;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updated_at): self
+    {
+        $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }
